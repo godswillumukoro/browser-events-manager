@@ -1,65 +1,32 @@
-// Service worker code
+// Log current tab title and url
+const dataHistory = []
 
-// Tabs events
-chrome.tabs.onCreated.addListener(function(tab) {
-    console.log('Tab Created:', tab);
-});
+const getPageTitleandUrl = (tabInfo) => {
+    const currentData = {}
+    // get title
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        const tab = tabs[0];
+        if (tab) {
+            currentData.title = tab.title
+        }
+    });
 
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    console.log('Tab Updated:', tab);
-});
+    // get url
+    currentData.url = tabInfo.url
 
-chrome.tabs.onMoved.addListener(function(tabId, moveInfo) {
-    console.log('Tab Moved:', moveInfo);
-});
+    saveDataToDB(currentData)
 
-// Windows events
-chrome.windows.onCreated.addListener(function(window) {
-    console.log('Window Created:', window);
-});
+}
 
-chrome.windows.onRemoved.addListener(function(windowId) {
-    console.log('Window Removed:', windowId);
-});
+const saveDataToDB = (data) => {
+    // const jsonFormattedData = JSON.stringify(data)
+    dataHistory.push(data)
+}
 
-chrome.windows.onFocusChanged.addListener(function(windowId) {
-    console.log('Window Focus Changed:', windowId);
-});
+const retrieveDataFromDB = () => {
+    console.log(dataHistory)
+}
 
-// Bookmarks events
-chrome.bookmarks.onCreated.addListener(function(bookmarkId, bookmarkInfo) {
-    console.log('Bookmark Created:', bookmarkInfo);
-});
+retrieveDataFromDB()
 
-chrome.bookmarks.onRemoved.addListener(function(bookmarkId, removeInfo) {
-    console.log('Bookmark Removed:', removeInfo);
-});
-
-// Cookies events
-chrome.cookies.onChanged.addListener(function(changeInfo) {
-    console.log('Cookie Changed:', changeInfo);
-});
-
-// History events
-chrome.history.onVisited.addListener(function(historyItem) {
-    console.log('History Visited:', historyItem);
-});
-
-// Downloads events
-chrome.downloads.onCreated.addListener(function(downloadItem) {
-    console.log('Download Created:', downloadItem);
-});
-
-chrome.downloads.onChanged.addListener(function(downloadDelta) {
-    console.log('Download Changed:', downloadDelta);
-});
-
-// Sessions events
-chrome.sessions.onChanged.addListener(function() {
-    console.log('Session Changed');
-});
-
-// Idle events
-chrome.idle.onStateChanged.addListener(function(newState) {
-    console.log('Idle State Changed:', newState);
-});
+chrome.history.onVisited.addListener(getPageTitleandUrl);
