@@ -1,32 +1,36 @@
-// Log current tab title and url
-const dataHistory = []
+chrome.tabs.onUpdated.addListener(async function(tabId, changeInfo, tab) {
+  console.log('Tab Updated:', tab);
+  sendData(tab, "tabs.onUpdated")
+  // clearAll()
+  getAll()
+});
 
-const getPageTitleandUrl = (tabInfo) => {
-    const currentData = {}
-    // get title
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-        const tab = tabs[0];
-        if (tab) {
-            currentData.title = tab.title
-        }
-    });
+let id = 0
 
-    // get url
-    currentData.url = tabInfo.url
+// Set all data from chrome.storage
+ function sendData(eventData, eventType) {
+  id += 1
+  eventData.lastInsertID = id
+  eventData.eventType = eventType
 
-    saveDataToDB(currentData)
-
+  const data = {}
+  data[id] = eventData
+  chrome.storage.local.set(data)
 }
 
-const saveDataToDB = (data) => {
-    // const jsonFormattedData = JSON.stringify(data)
-    dataHistory.push(data)
+function onGot(item) {
+  console.log(item);
 }
 
-const retrieveDataFromDB = () => {
-    console.log(dataHistory)
+function onError(error) {
+  console.error(`Error: ${error}`);
 }
 
-retrieveDataFromDB()
+function getAll() {
+ let gettingItem = chrome.storage.local.get()
+ gettingItem.then(onGot, onError)
+}
 
-chrome.history.onVisited.addListener(getPageTitleandUrl);
+function clearAll() {
+  chrome.storage.local.clear()
+}

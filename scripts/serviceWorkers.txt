@@ -61,3 +61,24 @@ chrome.sessions.onChanged.addListener(function() {
 chrome.idle.onStateChanged.addListener(function(newState) {
     console.log('Idle State Changed:', newState);
 });
+
+// Get all data from chrome.storage
+function retrieveAllData(callback) {
+  chrome.storage.local.get(null, function(data) {
+      if (chrome.runtime.lastError) {
+          console.error("Error retrieving data:", chrome.runtime.lastError);
+          callback(null);
+        } else {
+          callback(null);
+          // Convert the data object to JSON string
+          var jsonData = JSON.stringify(data);
+          // Pass the JSON string to the callback function
+          callback(data);
+      }
+  });
+}
+
+retrieveAllData(function(jsonData) {
+  console.log("Retrieved data as JSON:", jsonData);
+  // You can now save the JSON data to a file, send it to a server, etc.
+});

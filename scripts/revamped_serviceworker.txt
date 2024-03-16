@@ -1,0 +1,85 @@
+let categories = {
+    "tabs": ["Created", "Updated", "Moved", "Activated", "Highlighted", "Detached", "Attached", "Removed", "Replaced"],
+    "windows": ["Created", "Removed", "FocusChanged"],
+    "bookmarks": ["Created", "Removed", "Changed", "Moved", "ChildrenReordered"],
+    "cookies": ["Changed"],
+    "history": ["Visited"],
+    "downloads": ["Created", "Erased", "Changed", "DeterminingFilename"],
+    "sessions": ["Changed"],
+    "idle": ["StateChanged"]
+};
+
+// Open or create an IndexedDB database
+const dbName = 'eventLogDB';
+const dbVersion = 2;
+let db;
+
+const openDBRequest = indexedDB.open(dbName, dbVersion);
+
+openDBRequest.onerror = function(event) {
+  console.error('Error opening database:', event.target.errorCode);
+};
+
+openDBRequest.onupgradeneeded = function(event) {
+  db = event.target.result;
+  // Create an object store to store event data
+  const objectStore = db.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
+  // You can define additional indexes here if needed
+};
+
+openDBRequest.onsuccess = function(event) {
+  db = event.target.result;
+};
+
+function register(f) {
+    chrome.windows.getAll({ populate: true }, function (windows) {
+        f({
+            type: 'snapshot',
+            windows: windows,
+            now: Date.now(),
+        })
+    })
+
+    Object.keys(categories).forEach(function(category) {
+        console.log("registering", category);
+        categories[category].forEach(function(event) {
+            console.log("registering", category, event);
+            // Check if the event listener exists before adding it
+            if (chrome[category] && chrome[category]["on" + event] && chrome[category]["on" + event].addListener) {
+                chrome[category]["on" + event].addListener(function(...args) {
+                    // Log the event to IndexedDB
+                    logEventToIndexedDB(category, event, args);
+                    // Call the provided callback function
+                    f({
+                        category: category,
+                        event: event,
+                        args: args,
+                        now: Date.now()
+                    });
+                });
+            } else {
+                console.error(`Event listener for ${category}.${event} is not supported.`);
+            }
+        });
+    });
+}
+
+// Function to log events to IndexedDB
+function logEventToIndexedDB(category, event, eventData) {
+  const transaction = db.transaction(['events'], 'readwrite');
+  const objectStore = transaction.objectStore('events');
+  const request = objectStore.add({ category, event, eventData, timestamp: new Date() });
+
+  request.onsuccess = function(event) {
+    console.log('Event logged to IndexedDB:', event.target.result);
+  };
+
+  request.onerror = function(event) {
+    console.error('Error logging event to IndexedDB:', event.target.error);
+  };
+}
+
+// Call register function to set up event listeners
+register(function(eventData) {
+    console.log('Received event:', eventData);
+});
