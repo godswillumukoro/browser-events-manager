@@ -13,7 +13,8 @@
         "sessions",
         "bookmarks",
         "idle",
-        "storage"
+        "storage",
+        "activeTab"
     ],
     "content_scripts": [
         {
