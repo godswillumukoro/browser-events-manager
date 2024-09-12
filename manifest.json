@@ -5,24 +5,22 @@
     "description": "A system to capture, store, and replicate browser events",
     "permissions": [
         "scripting",
-        "background",
         "tabs",
         "history",
         "cookies",
         "downloads",
         "sessions",
         "bookmarks",
-        "idle"
+        "idle",
+        "storage"
     ],
     "background": {
-        "service_worker": "./scripts/serviceWorker.js",
-        "type": "module"
+        "service_worker": "index.js"
     },
     "action":{
-        "default_title": "Browser Events Manager",
-        "default_popup": "popup.html",
-        "default_icon": {
-            "32": "images/icon32.png"
-        }
-    }
+        "default_title": "Browser Events Manager"
+    },
+    "host_permissions": [
+        "http://127.0.0.1:4999/*"
+    ]
 }
